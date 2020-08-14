@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--suppress ALL-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <script type="text/javascript" th:src="@{/jquery-3.3.1.js}"></script>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<input type="button" onclick="add()" value="添加">
+<input type="button" id="delete" value="删除">
+<table border="2">
+    <tr>
+        <td>id</td>
+        <td>名字</td>
+        <td>性别</td>
+        <td>年龄</td>
+        <td>身份证正面</td>
+        <td>身份证反面</td>
+        <td>职位</td>
+        <td>部门</td>
+        <td>操作</td>
+    </tr>
+    <tr th:if="list!=null" th:each="emp,li:${list}">
+        <td th:text="${li.index}"></td>
+        <td>[[${emp.employee.ename}]]</td>
+        <td>[[${emp.employee.esex}]]</td>
+        <td>[[${emp.employee.eage}]]</td>
+        <td><img th:src="${emp.employee.eidentity}" style="width: 80px;height: 100px"></td>
+        <td><img th:src="${emp.employee.eidentityy}" style="width: 80px;height: 100px"></td>
+        <!--<td></td>s
+        <td>[[${emp.department.dname}]]</td>-->
+        <td>
+            <input type="button" value="修改">
+            <input type="checkbox" th:value="${emp.employee.getDid()}" name="checkbox">
+        </td>
+    </tr>
+</table>
+</body>
+</html>

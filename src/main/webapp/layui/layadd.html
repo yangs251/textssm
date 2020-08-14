@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>添加员工</title>
+    <link rel="stylesheet" href="/ly/css/layui.css"  media="all">
+    <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+</head>
+<body>
+<script src="/ly/layui.js" charset="utf-8"></script>
+<form class="layui-form" >
+    <div class="layui-form-item">
+        <label class="layui-form-label">姓名:</label>
+        <div class="layui-input-block">
+            <input type="text" name="ename" required  lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">年龄:</label>
+        <div class="layui-input-block">
+            <input type="text" name="eage" required  lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">性别:</label>
+        <div class="layui-input-block">
+            <input type="radio" name="esex" value="男" title="男">
+            <input type="radio" name="esex" value="女" title="女" checked>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">部门:</label>
+        <div class="layui-input-block">
+            <select name="did" lay-verify="required" id="did">
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">职位</label>
+        <div class="layui-input-block" id="sid" >
+        </div>
+    </div>
+    <div class="layui-upload">
+        <button type="button" class="layui-btn" id="test1">上传图片</button>
+        <div class="layui-upload-list">
+            <img class="layui-upload-img" id="previewImg">
+            <p id="demoText"></p>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+    layui.use(['form','upload','layer'], function(){
+        var form =layui.form;
+        var layer=layui.layer;
+        var $ = layui.jquery
+        ,upload = layui.upload;
+    $(function () {
+        $.ajax({
+            url:"/department/listdepartment.do",
+            type:'post',
+            success:function (data) {
+                for (var i=0;i<data.length;i++){
+                   $('#did').append(new Option(data[i].dname,data[i].did))
+                }
+                form.render();
+            }
+        })
+        $.ajax({
+            url:"/superior/listsuperior.do",
+            type:'post',
+            success:function (data) {
+                for (var i=0;i<data.length;i++){
+                    $('#sid').append("<input type='checkbox' name='sid' value='"+data[i].sname+"' <?=in_array($key, $standards) ? 'checked' : '';?> title='"+data[i].sid+"'>")
+                }
+                form.render();
+
+            }
+        })
+    })
+
+
+        //监听提交
+        form.on('submit(formDemo)', function(data){
+            layer.msg(JSON.stringify(data.field));
+
+            return false;
+        });
+        //上传图片
+        var uploadInst = upload.render({
+            elem: '#uploadPic' //绑定元素
+            ,url: '/employee/upload.do' //上传接口 [[@{/upload/img}]]
+            ,auto: false
+            ,bindAction: '#uploadPicBtn'
+            ,before: function(obj){
+                //预读本地文件示例，不支持ie8
+                obj.preview(function(index, file, result){
+                    $('#preShow').attr('src', result); //图片链接（base64）
+                });
+            }
+            ,done: function(res){
+                //如果上传失败
+                if(res.code > 0){
+                    alert("上传失败"+res.data.src);
+                    return layer.msg('上传失败');
+                }
+                //上传成功
+                alert("上传成功"+res.data.src);
+                document.getElementById("img_url").value = res.data.src;
+                return layer.msg('上传成功');
+            }
+            ,error: function(){
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-mini demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function(){
+                    uploadInst.upload();
+                });
+            }
+        });
+    });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--suppress ALL-->
+<html lang="en"xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form method="post" action="/employee/addemp.do" enctype="multipart/form-data">
+    姓名:<input type="text" name="ename"><br/>
+    性别:男<input type="radio" name="esex" value="男">
+    女<input type="radio" name="esex" value="女"><br/>
+    年龄:<input type="text" name="eage"><br/>
+    身份证正面:<input type="file" name="eidt"><br/>
+    身份证反面:<input type="file" name="edity"><br/>
+    部门:<select name="did">
+    <option value="4">营销部</option>
+    <option value="2">测试部</option>
+    <option value="1">开发部</option>
+    <option value="3">管理部</option>
+</select>
+    <div id="sup">
+    </div>
+    <input type="submit" value="提交">
+
+</body>
+</html>

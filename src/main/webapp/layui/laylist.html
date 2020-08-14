@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>查询所有</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/ly/css/layui.css"  media="all">
+    <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+</head>
+<body>
+
+<form class="layui-form">
+    <div class="layui-inline">
+        <label></label>
+        <input class="layui-input" name="ename" placeholder="名字" autocomplete="off">
+    </div>
+    <div class="layui-inline">
+        <select name="did" lay-verify="layverify">
+            <option value="">请选择一个部门</option>
+            <option value="1">开发部</option>
+            <option value="2">测试部</option>
+            <option value="3">管理部</option>
+            <option value="4">营销部</option>
+        </select>
+    </div>
+
+    <div class="layui-inline">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="listemp">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+
+<table id="demo" lay-filter="test" lay-data="{id: 'demo'}"></table>
+
+
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <div class="layui-btn-group">
+            <button type="button" class="layui-btn layui-btn-sm " lay-event="add">
+                <i class="layui-icon">&#xe654;添加</i>
+            </button>
+            <button type="button" class="layui-btn layui-btn-sm" lay-event="delete">
+                <i class="layui-icon">&#xe640;删除</i>
+            </button>
+        </div>
+    </div>
+</script>
+<script type="text/html" id="lineDemo">
+<a class="layui-btn layui-btn-xs" lay-event="detail">查看</a>
+<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+</script>
+
+<script src="/ly/layui.js" charset="utf-8"></script>
+<script type="module"sameSite="none" >
+    layui.use(['table','form','layer'], function(){
+        var table = layui.table;
+        var form =layui.form;
+        var layer=layui.layer;
+        var $=layui.jquery;
+
+
+
+        var tab=table.render({
+            elem: '#demo'
+            ,height: 312
+            ,url: '/employee/emplist.do' //数据接口
+            ,page: true //开启分页
+            ,limits:[1,3,5,7,10,20]
+            ,toolbar: '#toolbarDemo'
+            ,cols: [[ //表头
+                ,{type:'checkbox',fixed: "left"}
+                ,{field:'eid', width:80, title: '编号', sort: true,templet:'<div>{{d.employee.eid}}</div>'}
+                ,{field:'ename', width:80, title: '姓名',templet:'<div>{{d.employee.ename}}</div>'}
+                ,{field:'esex', width:80, title: '性别',templet:'<div>{{d.employee.esex}}</div>'}
+                ,{field:'eage', width:80, title: '年龄',sort: true,templet:'<div>{{d.employee.eage}}</div>'}
+                , {field: 'eidentity', title: '身份证附件',  width:110,hiheight:90,sort:false,
+                    templet:function (d) {
+                        return '<div onclick="photograph(this)"><img src='+d.employee.eidentity+'></div>'
+                    }}
+                , {field: 'eidentityy', title: '身份证附件(反面)',  width:110,hiheight:90,sort:false,
+                    templet:function (d) {
+                        return '<div onclick="photograph(this)"><img src='+d.employee.eidentityy+'></div>'
+                    }}
+                ,{field:'dname', width:80, title: '部门',templet:'<div>{{d.department.dname}}</div>'}
+                ,{field:'sname', width:180, title: '职位',templet:'<div>{{d.superior[d.employee.sid]}}</div>'}
+                ,{field:'wealth', width:135, title: '操作', sort: true,toolbar:"#lineDemo"}
+            ]]
+        });
+
+        form.on('submit(listemp)', function(data){
+            console.log(data.field) //当前容器的全部表单字段，名值对形式：{name: value}
+            tab.reload({
+                url: '/employee/emplist.do' //数据接口
+                ,where:data.field
+            });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+        //监听行工具事件
+        table.on('toolbar(test)', function(obj){
+            var checkStatus = table.checkStatus(obj.config.id);
+            switch(obj.event){
+                case 'add':
+                    layer.open({
+                         type:2
+                        ,area:['500px','600px']
+                        ,content:'/layui/layadd.html'
+                        ,title:'添加员工',
+                        end:function () {
+                             tab.reload({
+                                 url:'/employee/emplist.do'
+                             });
+                        }
+                    })
+                    break;
+                case 'delete':
+                        //获取选中状态
+                    var checkStatus = table.checkStatus('demo')
+                        ,checkData = checkStatus.data
+                        if(checkData == 0){
+                            layer.msg('批量删除至少选中一项数据',function(){});
+                            return false;
+                        }
+                        layer.confirm('真的要删除选中的项吗？',function(index){
+                            index = layer.load(1, {time: [0.1,'#fff']});
+
+                            var isStr="";
+                            for(var i=0; i<checkData; i++){
+                                isStr += isStr+','+checkData.data[i].id;
+                            }
+                            alert(isStr);
+                            $.ajax({
+                                type:'post',
+                                data:{"isStr":isStr},
+                                url:'/employee/empdelete.do',
+                                success:function(data){
+                                  if (data==0){
+                                      parent.layer.msg('操作失败!',{icon: 5,time:1000});
+                                  }else{
+                                      parent.layer.msg('删除成功!',{icon: 5,time:1000});
+                                  }
+                                    tab.reload({
+                                        url:'/employee/emplist.do'
+                                    });
+                                }
+                            });
+                        })
+                    break;
+            };
+        });
+    });
+</script>
+
+</body>
+</html>
